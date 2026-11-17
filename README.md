@@ -15,6 +15,14 @@ You write the prompt in Neovim with your normal keymaps, press Enter, and it is 
 └─────────────────────┴─────────────────────┘
 ```
 
+## Your prompts are never lost
+
+Claude Code's input box forgets an unsent prompt as soon as the window closes. Here, the prompt is a file:
+
+- **Drafts save on every keystroke.** Close the window, kill tmux or quit Neovim halfway through a prompt, and it's still there the next time you run `claude-nvim` in that folder.
+- **One draft per project.** Each folder keeps its own draft, so two Claude windows never overwrite each other.
+- **Every sent prompt is kept.** `:ClaudeHistory` opens a Markdown log of everything you've sent, with the date and folder, so you can find and reuse old prompts.
+
 ## Files
 
 | File | Installed to | What it does |

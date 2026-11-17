@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+# claude-nvim: start Claude Code with a Neovim prompt pane and a file manager pane.
+#
+# Layout (one tmux window):
+#   ┌─────────────────────┬─────────────────────┐
+#   │ Claude Code         │ yazi                │
+#   │ (read replies here) │ (files)             │
+#   ├─────────────────────┤                     │
+#   │ Neovim prompt       │                     │
+#   │ (write, <CR> sends) │                     │
+#   └─────────────────────┴─────────────────────┘
+#
+# Install: save to ~/.local/bin/claude-nvim and run `chmod +x ~/.local/bin/claude-nvim`.
+# Any arguments are passed to claude, e.g. `claude-nvim --continue`.
+# Sizes can be changed with env vars, e.g. `CLAUDE_FILES_WIDTH=35% claude-nvim`.
+# The right pane opens a plain shell in the current folder by default (type `y` yourself).
+# To start a command there automatically, set CLAUDE_FILES_CMD, e.g. `CLAUDE_FILES_CMD=y claude-nvim`.
+
+set -euo pipefail
+
+FILES_WIDTH="${CLAUDE_FILES_WIDTH:-50%}"    # right column (file manager)
+PROMPT_HEIGHT="${CLAUDE_PROMPT_HEIGHT:-25%}" # bottom of left column (prompt)
+FILES_CMD="${CLAUDE_FILES_CMD-}"             # typed into the right pane's shell; empty = plain shell
+
+# Not inside tmux yet: start a new session that runs this script again.
+if [[ -z "${TMUX:-}" ]]; then
+  exec tmux new-session -c "$PWD" "$0" "$@"
+fi
+
+CLAUDE_PANE="$TMUX_PANE"
+
+# Mark this pane as Claude's, so Neovim can find it from any pane in the window.
+tmux set-option -p -t "$CLAUDE_PANE" @claude 1
+
+# Right column: open your normal interactive shell, then type the file-manager command
+# into it, so your aliases, ~/.zshrc and theme settings all load as usual.
+# -d keeps focus where it is; -P -F prints the new pane's id.
+FILES_PANE=$(tmux split-window -d -h -l "$FILES_WIDTH" -t "$CLAUDE_PANE" -c "$PWD" -P -F '#{pane_id}')
+if [[ -n "$FILES_CMD" ]]; then
+  tmux send-keys -t "$FILES_PANE" "$FILES_CMD" Enter
+fi
+
+# Bottom of the left column: the Neovim prompt buffer (this pane gets focus).
+tmux split-window -v -l "$PROMPT_HEIGHT" -t "$CLAUDE_PANE" -c "$PWD" \
+  -e "CLAUDE_PANE=$CLAUDE_PANE" "nvim +ClaudePrompt"
+
+exec claude "$@"

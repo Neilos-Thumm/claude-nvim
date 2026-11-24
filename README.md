@@ -17,6 +17,11 @@ You write the prompt in Neovim with your normal keymaps, press Enter, and it is 
 
 ## Your prompts are never lost
 
+This project stems from the very idea of how the XDG file structure was laid out, specifically the state folder.
+The state directory holds application-specific data that should persist between restarts, this can includes logs, history, etc.
+
+Unlike config, which the user edits, or data, which the user would want to back up, state is ephemeral-but-persistent and is worth keeping across sessions, but disposable if lost. Which suits with how a harness CLI works.
+
 Claude Code's input box forgets an unsent prompt as soon as the window closes. Here, the prompt is a file:
 
 - **Drafts save on every keystroke.** Close the window, kill tmux or quit Neovim halfway through a prompt, and it's still there the next time you run `claude-nvim` in that folder.
